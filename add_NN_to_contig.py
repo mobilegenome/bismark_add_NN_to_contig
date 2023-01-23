@@ -22,6 +22,9 @@ def add_nn_to_sequences(input_file: str, sequences_to_modify: List[str]) -> List
                 seq=Seq.Seq("NN" + str(records[seqname].seq) + "NN")
             )
             )
+        else:
+            modified_records.append(records[seqname])
+
     return modified_records
 
 
