@@ -1,5 +1,5 @@
 import argparse
-from Bio import SeqIO, SeqRecord
+from Bio import SeqIO, SeqRecord, Seq
 import unittest
 from io import StringIO
 from typing import List
@@ -11,20 +11,25 @@ def add_nn_to_sequences(input_file: str, sequences_to_modify: List[str]) -> List
     It then reads the input FASTA file, adds 'NN' to the start and end of the sequences specified in the list,
     and returns the modified FASTA records.
     """
-    records = list(SeqIO.parse(input_file, "fasta"))
-    for record in records:
-        if record.id in sequences_to_modify:
-            record.seq = "NN" + str(record.seq) + "NN"
-    return records
+
+    records = SeqIO.index(input_file, "fasta")
+    modified_records = []
+    for seqname in records:
+        if seqname in sequences_to_modify:
+            modified_records.append(SeqRecord.SeqRecord(
+                id=seqname,
+                description=records[seqname].description,
+                seq=Seq.Seq("NN" + str(records[seqname].seq) + "NN")
+            )
+            )
+    return modified_records
 
 
 class TestAddNN(unittest.TestCase):
     def test_adding_nn(self):
-        input_file = StringIO(">sequence1\nACTG")
-
         sequences_to_modify = ["sequence1"]
-        records_modified = add_nn_to_sequences(input_file, sequences_to_modify)
-        self.assertEqual(str(records_modified[0].seq), 'NNACTGNN')
+        records_modified = add_nn_to_sequences("input.fasta", sequences_to_modify)
+        self.assertEqual(str(records_modified[0].seq), 'NNACATCGATNN')
 
 
 if __name__ == '__main__':
